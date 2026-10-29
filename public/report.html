@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your results — RepAnchor</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #14213D; --paper: #F5F6F2; --muted: #6B7280; --line: #E2E4DE; --gold: #E8A33D; --teal: #2D9C8A; --coral: #D64545; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: "IBM Plex Sans", -apple-system, sans-serif; line-height: 1.6; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 40px 24px 80px; }
+  .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
+  .toolbar a { font-size: 13px; color: var(--muted); text-decoration: none; }
+  .toolbar button { font-family: inherit; font-size: 14px; font-weight: 600; background: var(--ink); color: #fff; border: none; border-radius: 7px; padding: 10px 18px; cursor: pointer; }
+  .sheet { background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .head { background: var(--ink); color: #fff; padding: 26px 30px; border-bottom: 5px solid var(--gold); display: flex; align-items: center; gap: 14px; }
+  .head h1 { font-family: "Fraunces", Georgia, serif; font-size: 24px; margin: 0; line-height: 1.15; }
+  .head p { margin: 2px 0 0; font-size: 13px; color: #E6E9F0; }
+  .body { padding: 26px 30px 30px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 26px; }
+  .stat { background: var(--paper); border-radius: 10px; padding: 16px; text-align: center; }
+  .stat .num { font-family: "Fraunces", Georgia, serif; font-size: 30px; font-weight: 700; line-height: 1.1; }
+  .stat .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  h2 { font-family: "Fraunces", Georgia, serif; font-size: 18px; margin: 26px 0 10px; }
+  .good { color: var(--teal); font-weight: 600; }
+  .bad { color: var(--coral); font-weight: 600; }
+  blockquote { margin: 0 0 12px; padding: 12px 16px; background: var(--paper); border-radius: 8px; font-size: 14px; }
+  blockquote span { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .row { display: flex; justify-content: space-between; border-bottom: 1px solid var(--line); padding: 8px 0; font-size: 14px; }
+  .row:last-child { border-bottom: none; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .foot { margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+  @media (max-width: 560px) { .stats { grid-template-columns: 1fr; } .body, .head { padding-left: 20px; padding-right: 20px; } }
+  @media print {
+    body { background: #fff; }
+    .toolbar { display: none; }
+    .wrap { padding: 0; max-width: 100%; }
+    .sheet { border: none; border-radius: 0; }
+    .head, .stat, blockquote { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="toolbar">
+    <a href="/">&larr; Back to dashboard</a>
+    <button type="button" id="printBtn">Print or save as PDF</button>
+  </div>
+  <div class="sheet">
+    <div class="head">
+      <svg width="40" height="40" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="17" cy="17" r="16" fill="#fff"/>
+        <circle cx="17" cy="9" r="2" fill="none" stroke="#14213D" stroke-width="1.8"/>
+        <line x1="17" y1="11" x2="17" y2="20" stroke="#14213D" stroke-width="2" stroke-linecap="round"/>
+        <line x1="13" y1="14.5" x2="21" y2="14.5" stroke="#14213D" stroke-width="2" stroke-linecap="round"/>
+        <path d="M9.5,18 Q9.5,23 14,24" fill="none" stroke="#14213D" stroke-width="2" stroke-linecap="round"/>
+        <path d="M24.5,18 Q24.5,23 20,24" fill="none" stroke="#14213D" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <h1 id="bizName">Your results</h1>
+        <p id="periodLine">Loading...</p>
+      </div>
+    </div>
+    <div class="body" id="content"><p class="muted">Loading your report...</p></div>
+  </div>
+</div>
+<script>
+function esc(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+(async function load() {
+  const content = document.getElementById('content');
+  let res;
+  try {
+    res = await fetch('/api/report').then(r => { if (r.status === 401) { window.location.href = '/login.html'; } return r.json(); });
+  } catch (e) {
+    content.innerHTML = '<p class="muted">Couldn\'t load your report. Please try again.</p>';
+    return;
+  }
+  if (!res || !res.ok) { content.innerHTML = '<p class="muted">Couldn\'t load your report. Please try again.</p>'; return; }
+  const r = res.report;
+  document.getElementById('bizName').textContent = r.businessName + ': your results';
+  document.getElementById('periodLine').textContent = r.periodLabel + ' · prepared ' + new Date(res.generatedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+  if (!r.reviewsReceived) {
+    content.innerHTML = '<p class="muted">No reviews yet in this period. Once reviews come in (or after you run a preview), your results show up here.</p>';
+    return;
+  }
+
+  let change = '';
+  if (r.ratingChange !== null && r.ratingChange !== 0) {
+    change = `<span class="${r.ratingChange > 0 ? 'good' : 'bad'}">${r.ratingChange > 0 ? '▲' : '▼'} ${Math.abs(r.ratingChange)}</span>`;
+  }
+  let html = `
+    <div class="stats">
+      <div class="stat"><div class="num">${r.repliesPosted}</div><div class="lbl">replies posted</div></div>
+      <div class="stat"><div class="num">${esc(r.hoursSavedText)}</div><div class="lbl">of your time saved (estimate)</div></div>
+      <div class="stat"><div class="num">${r.avgRating === null ? 'n/a' : r.avgRating} ${change}</div><div class="lbl">average rating</div></div>
+    </div>
+    <div class="row"><span>Reviews received</span><strong>${r.reviewsReceived}</strong></div>
+    <div class="row"><span>Replied to automatically</span><strong>${r.autoReplies}</strong></div>
+    <div class="row"><span>Replies you approved</span><strong>${r.approvedReplies}</strong></div>
+    <div class="row"><span>Waiting for your approval</span><strong>${r.waitingForApproval}</strong></div>
+    <div class="row"><span>1-2 star reviews</span><strong>${r.needsAttention.lowStarReviews} (${r.needsAttention.lowStarReplied} replied to)</strong></div>`;
+
+  if (r.bestReviews.length) {
+    html += '<h2>Reviews worth sharing with your team</h2>' + r.bestReviews.map(b =>
+      `<blockquote>&ldquo;${esc(b.comment)}&rdquo;<span>${esc(b.reviewer)}</span></blockquote>`).join('');
+  }
+
+  const m = res.mentions;
+  if (m && ((m.people && m.people.length) || (m.dishes && m.dishes.length))) {
+    const list = (items) => items.map(x => `<div class="row"><span>${esc(x.name)}</span><span class="muted">${x.mentions} mention${x.mentions === 1 ? '' : 's'}</span></div>`).join('');
+    if (m.people && m.people.length) html += '<h2>Team shout-outs</h2>' + list(m.people);
+    if (m.dishes && m.dishes.length) html += '<h2>What customers are naming</h2>' + list(m.dishes);
+  }
+
+  html += '<div class="foot">Time saved assumes about 3 minutes to write and post each reply. Prepared by RepAnchor.</div>';
+  content.innerHTML = html;
+})();
+</script>
+</body>
+</html>
