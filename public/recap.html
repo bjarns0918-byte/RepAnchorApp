@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your recap — RepAnchor</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="description" content="Your RepAnchor year in review.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #14213D; --paper: #F5F6F2; --gold: #E8A33D; --gold-light: #FBF0DC;
+    --teal: #2D9C8A; --teal-light: #E1F5F0; --muted: #6B7280;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; color: #fff; font-family: "IBM Plex Sans", -apple-system, sans-serif; line-height: 1.5;
+    background: radial-gradient(ellipse 900px 700px at 20% 0%, #1c2d54, #0d1730 60%);
+    min-height: 100vh;
+  }
+  a, button { transition: opacity 0.15s ease, background-color 0.15s ease; }
+  ::selection { background: rgba(232,163,61,0.4); color: #fff; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #0d1730; }
+  ::-webkit-scrollbar-thumb { background: #E8A33D; border-radius: 10px; border: 2px solid #0d1730; }
+  ::-webkit-scrollbar-thumb:hover { background: #d18f2a; }
+  * { scrollbar-width: thin; scrollbar-color: #E8A33D #0d1730; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 50px 24px 70px; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .brand-mark { display: flex; align-items: center; gap: 10px; justify-content: center; margin-bottom: 10px; opacity: 0.85; }
+  .brand-mark span { font-size: 13px; font-weight: 600; }
+  h1 { font-family: "Fraunces", Georgia, serif; font-size: 30px; font-weight: 700; text-align: center; margin: 0 0 6px; }
+  p.lead { text-align: center; color: rgba(255,255,255,0.65); font-size: 14px; margin: 0 0 40px; }
+  .stat-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 28px; text-align: center; margin-bottom: 18px; }
+  .stat-card .big { font-family: "Fraunces", Georgia, serif; font-size: 44px; font-weight: 800; color: var(--gold); margin: 0 0 6px; }
+  .stat-card .big.teal { color: var(--teal); }
+  .stat-card .caption { font-size: 14px; color: rgba(255,255,255,0.75); margin: 0; }
+  .stat-row { display: flex; gap: 14px; }
+  @media (max-width: 380px) {
+    .stat-row { flex-direction: column; }
+  }
+  .stat-row .stat-card { flex: 1; padding: 20px 16px; }
+  .stat-row .big { font-size: 30px; }
+  .empty-state { text-align: center; padding: 80px 24px; }
+  .empty-state h2 { font-family: "Fraunces", Georgia, serif; font-size: 22px; margin: 0 0 10px; }
+  .empty-state p { color: rgba(255,255,255,0.65); font-size: 14px; }
+  .back { display: block; text-align: center; font-size: 13px; color: rgba(255,255,255,0.6); text-decoration: none; margin-top: 30px; }
+  .back:hover { color: #fff; }
+  .badge-full-year { display: inline-block; background: var(--gold); color: #14213D; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 10px; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand-mark">
+    <svg width="20" height="20" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="17" cy="9" r="2" fill="none" stroke="#E8A33D" stroke-width="1.8"/>
+      <line x1="17" y1="11" x2="17" y2="20" stroke="#E8A33D" stroke-width="2"/>
+      <line x1="13" y1="14.5" x2="21" y2="14.5" stroke="#E8A33D" stroke-width="2"/>
+      <path d="M9.5,18 Q9.5,23 14,24" fill="none" stroke="#E8A33D" stroke-width="2"/>
+      <path d="M24.5,18 Q24.5,23 20,24" fill="none" stroke="#E8A33D" stroke-width="2"/>
+    </svg>
+    <span>RepAnchor</span>
+  </div>
+
+  <div id="content">
+    <p style="text-align:center; color:rgba(255,255,255,0.5);">Loading your recap...</p>
+  </div>
+
+  <a href="/" class="back">&larr; Back to dashboard</a>
+</div>
+
+<script>
+async function load() {
+  const res = await fetch('/api/recap').then(r => r.json());
+  const content = document.getElementById('content');
+
+  if (!res.ok || !res.available) {
+    content.innerHTML = `
+      <div class="empty-state">
+        <h2>Your recap is still brewing</h2>
+        <p>Check back once you've got a couple months of history - the more data, the better the story.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const changeText = res.ratingChange > 0
+    ? `+${res.ratingChange}`
+    : res.ratingChange < 0
+      ? `${res.ratingChange}`
+      : 'steady';
+  const changeColor = res.ratingChange > 0 ? 'teal' : '';
+
+  content.innerHTML = `
+    ${res.isFullYear ? '<div style="text-align:center;"><span class="badge-full-year">Full year</span></div>' : ''}
+    <h1>${res.isFullYear ? 'Your year, wrapped' : 'Your recap so far'}</h1>
+    <p class="lead">${res.firstLabel} &rarr; ${res.latestLabel}</p>
+
+    <div class="stat-card">
+      <p class="big ${changeColor}">${changeText}${res.ratingChange !== 0 ? ' \u2605' : ''}</p>
+      <p class="caption">Rating change since ${res.firstLabel} - from ${res.firstRating} to ${res.latestRating}</p>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <p class="big">${res.totalReviews}</p>
+        <p class="caption">Reviews handled</p>
+      </div>
+      <div class="stat-card">
+        <p class="big">${res.bestRating}\u2605</p>
+        <p class="caption">Best month: ${res.bestLabel}</p>
+      </div>
+    </div>
+  `;
+}
+
+load();
+</script>
+<script src="/cookie-consent.js"></script>
+</body>
+</html>
