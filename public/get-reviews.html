@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="light">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Get more reviews — RepAnchor</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#14213D; --paper:#F5F6F2; --card:#fff; --line:#E2E4DE; --gold:#E8A33D; --muted:#6B7280; --teal:#2D9C8A; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:"IBM Plex Sans",-apple-system,sans-serif; line-height:1.5; }
+  .wrap { max-width:620px; margin:0 auto; padding:40px 24px 80px; }
+  .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
+  .top h1 { font-family:"Fraunces",Georgia,serif; font-size:24px; margin:0; }
+  .top a { font-size:13px; color:var(--muted); text-decoration:none; }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:24px 26px; margin-bottom:20px; box-shadow:0 1px 2px rgba(20,33,61,.05); }
+  h2 { font-family:"Fraunces",Georgia,serif; font-size:17px; margin:0 0 10px; }
+  p { margin:0 0 12px; font-size:14px; }
+  .muted { color:var(--muted); font-size:13px; }
+  button, a.btn { font:600 14px "IBM Plex Sans",sans-serif; background:var(--ink); color:#fff; border:none; border-radius:7px; padding:10px 16px; cursor:pointer; text-decoration:none; display:inline-block; }
+  button.secondary { background:#fff; color:var(--ink); border:1px solid var(--line); }
+  .row { display:flex; gap:8px; flex-wrap:wrap; }
+  .linkbox { display:flex; gap:8px; margin:0 0 14px; }
+  .linkbox input { flex:1; min-width:0; font:14px "IBM Plex Sans",sans-serif; border:1px solid var(--line); border-radius:7px; padding:10px 12px; }
+  .sign { border:2px solid var(--ink); border-radius:14px; padding:28px 24px; text-align:center; background:#fff; max-width:380px; margin:0 auto 18px; }
+  .sign .biz { font-family:"Fraunces",Georgia,serif; font-weight:700; font-size:22px; }
+  .sign .ask { font-size:18px; font-weight:600; margin:8px 0 14px; }
+  .sign .qr svg { width:220px; height:220px; }
+  .sign .how { font-size:13px; color:var(--muted); margin-top:10px; }
+  .sign .stars { color:var(--gold); font-size:26px; letter-spacing:4px; }
+  ul { padding-left:20px; margin:0; font-size:14px; } li { margin-bottom:6px; }
+  .stat { font-size:13px; color:var(--muted); }
+  @media print {
+    body { background:#fff; }
+    .top, .no-print, .panel:not(#signPanel) { display:none !important; }
+    .wrap { padding:0; max-width:none; }
+    #signPanel { border:none; box-shadow:none; padding:0; margin:0; }
+    .sign { max-width:none; border-width:3px; padding:60px 40px; margin:40px auto; width:80%; }
+    .sign .biz { font-size:34px; } .sign .ask { font-size:28px; } .sign .qr svg { width:420px; height:420px; } .sign .how { font-size:18px; }
+  }
+:root{color-scheme:light}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>Get more reviews</h1><a href="/">&larr; Back to dashboard</a></div>
+
+  <div class="panel no-print" id="noLink" style="display:none;">
+    <h2>We need your Google review link first</h2>
+    <p id="noLinkText"></p>
+    <a class="btn" href="/settings.html#business">Go to Settings</a>
+  </div>
+
+  <div class="panel" id="signPanel" style="display:none;">
+    <h2 class="no-print">Your review sign</h2>
+    <div class="sign">
+      <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <div class="biz" id="signBiz"></div>
+      <div class="ask">Enjoyed your visit? Leave us a quick Google review.</div>
+      <div class="qr" id="signQr"></div>
+      <div class="how">Point your phone camera at the code</div>
+    </div>
+    <div class="row no-print">
+      <button type="button" id="printBtn">Print this sign</button>
+      <button type="button" class="secondary" id="saveQrBtn">Download QR as image</button>
+    </div>
+  </div>
+
+  <div class="panel no-print" id="linkPanel" style="display:none;">
+    <h2>Your short link</h2>
+    <p class="muted">Put this in texts, receipts, email signatures, or your website. It goes straight to the Google review box.</p>
+    <div class="linkbox"><input type="text" id="shortUrl" readonly><button type="button" id="copyBtn">Copy</button></div>
+    <p class="stat" id="scanStat"></p>
+  </div>
+
+  <div class="panel no-print">
+    <h2>Getting reviews that stick</h2>
+    <ul>
+      <li>Ask in person, right after a great moment: when someone compliments the food or says thanks.</li>
+      <li>Put the sign by the register, on tables, or tucked in the check presenter.</li>
+      <li>Print the QR on receipts, takeout bags, or menus.</li>
+      <li>Ask everyone, not just happy customers. Google's rules don't allow offering a discount or gift in exchange for a review, or only asking people you expect to be positive.</li>
+    </ul>
+  </div>
+</div>
+<script>
+(function () {
+  function $(id) { return document.getElementById(id); }
+  var qrSvg = '';
+  fetch('/api/review-link').then(function (r) {
+    if (r.status === 401) { location.href = '/'; return null; }
+    return r.json();
+  }).then(function (res) {
+    if (!res) return;
+    if (!res.hasLink || !res.qrSvg) {
+      $('noLink').style.display = 'block';
+      $('noLinkText').textContent = !res.connected
+        ? 'Connect your Google Business Profile from the dashboard first, and RepAnchor will find your review link for you. You can also paste it in Settings.'
+        : res.hasLink
+          ? 'Your link is ready but the QR image could not be made right now. You can still copy the short link, and the QR will appear after the next update.'
+          : "Google didn't give us a review link for your business. In Settings, paste the link from your Google Business Profile (\"Get more reviews\" > \"Share review form\").";
+      if (res.hasLink) { $('linkPanel').style.display = 'block'; $('shortUrl').value = res.shortUrl; }
+      return;
+    }
+    qrSvg = res.qrSvg;
+    $('signBiz').textContent = res.businessName;
+    $('signQr').innerHTML = qrSvg;
+    $('signPanel').style.display = 'block';
+    $('linkPanel').style.display = 'block';
+    $('shortUrl').value = res.shortUrl;
+    $('scanStat').textContent = res.scans === 0 ? 'No scans yet.' : res.scans + ' time' + (res.scans === 1 ? '' : 's') + ' this link has been opened.';
+  });
+  $('printBtn').addEventListener('click', function () { window.print(); });
+  $('copyBtn').addEventListener('click', function () {
+    var input = $('shortUrl'); input.select();
+    try { navigator.clipboard.writeText(input.value); } catch (e) { document.execCommand('copy'); }
+    $('copyBtn').textContent = 'Copied';
+    setTimeout(function () { $('copyBtn').textContent = 'Copy'; }, 1500);
+  });
+  $('saveQrBtn').addEventListener('click', function () {
+    if (!qrSvg) return;
+    var svg = new Blob([qrSvg], { type: 'image/svg+xml' });
+    var url = URL.createObjectURL(svg);
+    var img = new Image();
+    img.onload = function () {
+      var c = document.createElement('canvas'); c.width = 1000; c.height = 1000;
+      var ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 1000, 1000); ctx.drawImage(img, 0, 0, 1000, 1000);
+      var a = document.createElement('a'); a.download = 'review-qr.png'; a.href = c.toDataURL('image/png'); a.click();
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  });
+})();
+</script>
+<script src="/support-chat.js" defer></script>
+</body>
+</html>
